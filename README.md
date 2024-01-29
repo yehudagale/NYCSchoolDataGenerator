@@ -8,7 +8,9 @@ add_demographics.py 2023
 The 3 most important output files will be:
 
 student_info_with_demographics.csv containing the demographic data and test scores of each simulated student
+
 student_prefs.csv containing the preferences of each simulated student
+
 temp_school.csv containing the data about the each school
 
 # Notes
