@@ -11,7 +11,7 @@ student_info_with_demographics.csv containing the demographic data and test scor
 
 student_prefs.csv containing the preferences of each simulated student
 
-temp_school.csv containing the data about the each school
+temp_school.csv containing the data about each school
 
 # Notes
 The system offers some results of the match to use to compare to the real data, these results do not take into account the simulated scores of the students, and are thus only really accurate if the match can be simulated as a lottery.
