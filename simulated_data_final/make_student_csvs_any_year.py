@@ -87,6 +87,10 @@ school_data = real_data.loc[real_data['Category'] == 'All Students'].copy()
 #find all the schools we are dropping
 school_data.loc[pd.isna(school_data['Grade 9 Seats Available'])].to_csv(f'{YEAR}/dropped_schools.csv')
 school_data = school_data.dropna(subset=['Grade 9 Seats Available', 'Grade 9 Offers'])
+if 'Grade 9 True Applicants' in school_data.columns:
+    school_data.loc[pd.isna(school_data['Grade 9 True Applicants'])].to_csv(f'{YEAR}/dropped_schools.csv')
+    school_data = school_data.dropna(subset=['Grade 9 True Applicants', 'Grade 9 Seats Available', 'Grade 9 Offers'])
+
 #find all the schools we are changing s in
 school_data[school_data.isin(['s']).any(axis=1)].to_csv(f'{YEAR}/s_schools.csv')
 

@@ -5,8 +5,8 @@ rng = np.random.default_rng(seed=10)
 
 
 YEAR_MARKER_2 = int(argv[1]) - 1
-YEAR_MARKER = f'{YEAR_MARKER_2 - 2}-{YEAR_MARKER_2 - 2001}'
-
+YEAR_MARKER = f'{YEAR_MARKER_2 - 1}-{YEAR_MARKER_2 - 2000}'
+print(YEAR_MARKER, YEAR_MARKER_2)
 demographic_data = pd.read_csv('./starting_data_all_years/Demographic_Snapshot_2017-18_to_2021-22__Public_district.csv')
 print(demographic_data.columns)
 demographic_data['Grade 7'] =  demographic_data['Grade 7'].apply(lambda x :  x.replace(',', '') if isinstance(x, str) else x)
