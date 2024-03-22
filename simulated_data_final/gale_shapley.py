@@ -32,7 +32,15 @@ class Actor(ABC):
             return (my_old_match, other_old_match)
         return ()
     def __str__(self):
-        return self.id
+        return str(self.id)
+    def __eq__(self, other):
+        if other is None:
+            return False
+        # if not other:
+            # return False
+        # print(self, other)
+        return other.id == self.id
+
 class Single_Slot(Actor):
     """Actor with only one slot e.g. student, man/women in the marriage case"""
     def __init__(self, id, preferences):
@@ -71,16 +79,29 @@ class Single_Slot(Actor):
         return self.pref_dict.get(actor_2.id, len(self.pref_dict)) < self.pref_dict.get(self.current_match.id, len(self.pref_dict))
 class Multi_Slot(Actor):
     """docstring for Multi_Slot"""
-    def __init__(self, id, preferences, capacity):
+    def __init__(self, id, preferences, capacity, record_applicants=False):
         super(Multi_Slot, self).__init__(id, preferences)
         self.current_match = []
         self.capacity = capacity
+        self.record_applicants = record_applicants
+        if record_applicants:
+            self.proposed = []
+
     def add_match(self, actor_2):
         if self.capacity > len(self.current_match):
             heappush(self.current_match, (len(self.pref_dict) - self.pref_dict[actor_2.id], actor_2))
             return None
         return heappushpop(self.current_match, (len(self.pref_dict) - self.pref_dict[actor_2.id], actor_2))[1]
+    def get_match(self):
+        return [(self.pref_dict[item[1].id], item[1].id) for item in self.current_match]
     def check_proposal(self, actor_2):
+        # if verbose:
+        #     print(f'actor 2 priority {self.pref_dict.get(actor_2.id,len(self.pref_dict))}')
+        #     print(f'current num_items {len(self.current_match)}')
+        #     print(f'current worst priority {self.pref_dict.get(self.current_match[0][1].id,len(self.pref_dict))}')
+        #     print(f'pref dict length is {len(self.pref_dict)}')
+        if self.record_applicants:
+            self.proposed.append((self.pref_dict.get(actor_2.id, len(self.pref_dict)), actor_2))
         if self.capacity <= 0:
             return False
         elif self.pref_dict.get(actor_2.id) is None:
@@ -88,7 +109,7 @@ class Multi_Slot(Actor):
         elif len(self.current_match) < self.capacity:
             return True
         else:
-            return self.pref_dict.get(actor_2.id,len(self.pref_dict)) < self.current_match[0][0]
+            return self.pref_dict.get(actor_2.id,len(self.pref_dict)) < self.pref_dict.get(self.current_match[0][1].id,len(self.pref_dict))
 
 class Quota_Multi(Multi_Slot):
     def __init__(self, goal_percent, ID, preferences, capacity, quota_dict):
@@ -164,3 +185,48 @@ def gale_shapley_algorithm(students, schools):
             unmatched.append(old)
 
     return students, schools
+
+def gale_shapley_algorithm_expand(students, schools, displaced):
+    global ID_TO_OBJECT
+    ID_TO_OBJECT = {actor.id: actor for actor in students + schools}
+    unmatched = students.copy()
+    unmatched_displaced = [student for student in unmatched if student.preference_slot == 0 and student.id in displaced]
+    unmatched = [student for student in unmatched if student.preference_slot == 0 and student.id not in displaced]
+    while unmatched:
+        student = unmatched.pop()
+        old = student.propose_until_matched()
+        if old is not None:
+            unmatched.append(old)
+    # print(displaced)
+    while unmatched_displaced:
+        # print("here")
+        student = unmatched_displaced.pop()
+        old = student.propose_until_matched()
+        if old is not None:
+            unmatched_displaced.append(old)
+    return students, schools
+
+
+if __name__ == '__main__':
+    students = []
+    schools = []
+    # schools.append(TTC_Multi_Slot('S1', ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8'], 2))
+    # schools.append(TTC_Multi_Slot('S2', ['I3', 'I5', 'I4', 'I8', 'I7', 'I2', 'I1', 'I6'], 2))
+    # schools.append(TTC_Multi_Slot('S3', ['I5', 'I3', 'I1', 'I7', 'I2', 'I8', 'I6', 'I4'], 3))
+    # schools.append(TTC_Multi_Slot('S4', ['I6', 'I8', 'I7', 'I4', 'I2', 'I3', 'I5', 'I1'], 3))
+    #
+    students.append(Single_Slot('A', ['Blue', 'Red', 'Yellow']))
+    students.append(Single_Slot('B', ['Red', 'Blue', 'Yellow']))
+    students.append(Single_Slot('C', ['Blue', 'Red', 'Yellow']))
+    # students.append(TTC_Single_Slot('I4', ['S3', 'S4', 'S1', 'S2']))
+    # students.append(TTC_Single_Slot('I5', ['S1', 'S3', 'S4', 'S2']))
+    # students.append(TTC_Single_Slot('I6', ['S4', 'S1', 'S2', 'S3']))
+    # students.append(TTC_Single_Slot('I7', ['S1', 'S2', 'S3', 'S4']))
+    # students.append(TTC_Single_Slot('I8', ['S1', 'S2', 'S4', 'S3']))
+    schools.append(Multi_Slot('Red', ['A', 'C', 'B'], 1))
+    schools.append(Multi_Slot('Yellow', ['A', 'B', 'C'], 1))
+    schools.append(Multi_Slot('Blue', ['B', 'C', 'A'], 1))
+
+    gale_shapley_algorithm(students, schools)
+    for student in students:
+        print(f'id: {student.id}, school: {student.current_match.id}')
